@@ -3,9 +3,13 @@ import urllib.request
 import datetime
 import json
 
+from bs4 import BeautifulSoup
+from selenium import webdriver
+
 server_url = 'http://www.smogon.com/'
 date_format = '%Y-%m'
 auto_download = True
+PHANTOMJS_PATH = './phantomjs/phantomjs'
 
 
 class PokeCoachError(Exception):
@@ -100,3 +104,10 @@ def get_pokemon_data(pokemon, date='default', meta='gen7ou', rank=1500):
                         item: percent_usage
                     })
     return pokemon_data
+
+
+def get_smogon_dex_json(section):
+    browser = webdriver.PhantomJS(PHANTOMJS_PATH)
+    browser.get(server_url + 'dex/sm/' + section + '/')
+    browser.set_window_size(1280, 720)
+    return browser
