@@ -4,10 +4,7 @@ import datetime
 import json
 import smogonscraper
 
-server_url = 'http://www.smogon.com/'
-date_format = '%Y-%m'
-auto_download = True
-PHANTOMJS_PATH = './phantomjs/phantomjs'
+import constants
 
 
 class PokeCoachError(Exception):
@@ -32,26 +29,27 @@ class PokemonError(PokeCoachError):
 
 
 def _check_smogon_release(date):
-    server_release = server_url + 'stats/' + date + '/'
+    server_release = constants.SERVER_URL + '/stats/' + date + '/'
     try:
         urllib.request.urlopen(server_release)
     except urllib.request.HTTPError as e:
         raise SmogonError from e
 
 
-def get_smogon_json(date='default', meta='gen7ou', rank=1500):
+def pokemon_dict(date='default', meta='gen7ou', rank=1500):
     json_filename = 'stats/' + date + '/chaos/' + meta + '-' + str(rank) + '.json'
+    server_source_path = constants.SERVER_URL + '/' + json_filename
     if date == 'default':
         autodate = datetime.date.today()
         while True:
-            date = autodate.strftime(date_format)
+            date = autodate.strftime(constants.DATE_FORMAT)
             print('Trying date: ' + date)
             json_filename = 'stats/' + date + '/chaos/' + meta + '-' + str(rank) + '.json'
             print('Checking local files... ', end='')
             if not os.path.isfile(json_filename):
                 print('Not found.')
                 try:
-                    if auto_download:
+                    if constants.AUTO_DOWNLOAD:
                         print('Checking server... ', end='')
                         _check_smogon_release(date)
                         print('Found!')
@@ -66,11 +64,11 @@ def get_smogon_json(date='default', meta='gen7ou', rank=1500):
                 break
 
     if not os.path.isfile(json_filename):
-        if auto_download:
-            print('Downloading: ' + server_url + json_filename)
+        if constants.AUTO_DOWNLOAD:
+            print('Downloading: ' + server_source_path)
             os.makedirs(os.path.dirname(json_filename), exist_ok=True)
             try:
-                urllib.request.urlretrieve(server_url + json_filename, json_filename)
+                urllib.request.urlretrieve(server_source_path, json_filename)
             except urllib.request.HTTPError as e:
                 raise SmogonError from e
     try:
@@ -82,13 +80,13 @@ def get_smogon_json(date='default', meta='gen7ou', rank=1500):
     return json_data
 
 
-def get_pokemon_data(pokemon, date='default', meta='gen7ou', rank=1500):
-    smogon_json = get_smogon_json(date, meta, rank)
+def pokemon(name, date='default', meta='gen7ou', rank=1500):
+    smogon_json = pokemon_dict(date, meta, rank)
     pokemon_data = {'data': {}}
     try:
         pokemon_data.update({
-            'data': smogon_json['data'][pokemon],
-            'Count': sum(smogon_json['data'][pokemon]['Abilities'].values())
+            'data': smogon_json['data'][name],
+            'Count': sum(smogon_json['data'][name]['Abilities'].values())
         })
     except KeyError as e:
         raise PokemonError from e
@@ -103,16 +101,31 @@ def get_pokemon_data(pokemon, date='default', meta='gen7ou', rank=1500):
                     })
     return pokemon_data
 
-def get_smogon_move_json(version='sm'):
+
+def moves_dict(version='sm'):
     json_filename = 'dex/' + version + '/moves.json'
-    server_source_path = 'dex/' + version + '/moves/'
+    server_source_path = constants.SERVER_URL + '/dex/' + version + '/moves/'
 
     if not os.path.isfile(json_filename):
-        if auto_download:
-            print('Scraping: ' + server_url + server_source_path)
+        if constants.AUTO_DOWNLOAD:
+            print('Scraping: ' + server_source_path)
             os.makedirs(os.path.dirname(json_filename), exist_ok=True)
             move_dict = smogonscraper.scrape_moves('sm')
             if not bool(move_dict):
                 raise SmogonError
             f = open(json_filename, 'w')
             f.write(json.dumps(move_dict))
+            f.close()
+    try:
+        f = open(json_filename, 'r')
+    except FileNotFoundError:
+        raise
+    data = f.read()
+    json_data = json.loads(data)
+    return json_data
+
+
+def move(name, version='sm'):
+    moves = moves_dict(version)
+    move_data = moves[name]
+    return move_data

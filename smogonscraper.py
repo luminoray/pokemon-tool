@@ -1,12 +1,11 @@
-import json
+import constants
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from pokemontool import server_url, PHANTOMJS_PATH
 
 
 def _get_smogon_dex_browser(section, version='sm'):
-    browser = webdriver.PhantomJS(PHANTOMJS_PATH)
-    browser.get(server_url + 'dex/' + version + '/' + section + '/')
+    browser = webdriver.PhantomJS(constants.PHANTOMJS_PATH)
+    browser.get(constants.SERVER_URL + '/dex/' + version + '/' + section + '/')
     browser.set_window_size(1280, 720)
     return browser
 
@@ -38,13 +37,13 @@ def scrape_moves(version='sm'):
 
             move_dict.update({
                 move_id: {
+                    'id': move_id,
                     'url': move_link,
                     'name': move_name,
                     'type': {
-                        type_id: {
-                            'url': type_link,
-                            'name': type_name
-                        }
+                        'id': type_id,
+                        'url': type_link,
+                        'name': type_name
                     },
                     'damage': move_damage,
                     'power': move_power,

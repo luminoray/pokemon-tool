@@ -11,7 +11,7 @@ args = parser.parse_args()
 pokemon = args.pokemon
 category = args.category
 
-usage_data = pokemontool.get_pokemon_data(pokemon)
+usage_data = pokemontool.pokemon(pokemon)
 category_data = OrderedDict(sorted(usage_data['data_percent'][category].items(), key=lambda t: t[1], reverse=True))
 print('')
 print('===================')
