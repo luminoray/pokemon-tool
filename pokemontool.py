@@ -2,9 +2,7 @@ import os
 import urllib.request
 import datetime
 import json
-
-from bs4 import BeautifulSoup
-from selenium import webdriver
+import smogonscraper
 
 server_url = 'http://www.smogon.com/'
 date_format = '%Y-%m'
@@ -105,9 +103,16 @@ def get_pokemon_data(pokemon, date='default', meta='gen7ou', rank=1500):
                     })
     return pokemon_data
 
+def get_smogon_move_json(version='sm'):
+    json_filename = 'dex/' + version + '/moves.json'
+    server_source_path = 'dex/' + version + '/moves/'
 
-def get_smogon_dex_json(section):
-    browser = webdriver.PhantomJS(PHANTOMJS_PATH)
-    browser.get(server_url + 'dex/sm/' + section + '/')
-    browser.set_window_size(1280, 720)
-    return browser
+    if not os.path.isfile(json_filename):
+        if auto_download:
+            print('Scraping: ' + server_url + server_source_path)
+            os.makedirs(os.path.dirname(json_filename), exist_ok=True)
+            move_dict = smogonscraper.scrape_moves('sm')
+            if not bool(move_dict):
+                raise SmogonError
+            f = open(json_filename, 'w')
+            f.write(json.dumps(move_dict))
