@@ -60,3 +60,35 @@ def scrape_moves(version='sm'):
             y = new_y
 
     return move_dict
+
+
+def scrape_abilities(version='sm'):
+    browser = _get_smogon_dex_browser('abilities', version=version)
+
+    abilities_dict = {}
+    y = 0
+    while True:
+        visible_rows = browser.find_elements_by_class_name('AbilityRow')
+        for row in visible_rows:
+            soup = BeautifulSoup(row.get_attribute('innerHTML'), 'html.parser')
+            ability_link = soup.find('div', 'AbilityRow-name').a['href']
+            ability_id = ability_link.strip('/').rsplit('/', 1)[-1]
+            ability_name = soup.find('div', 'AbilityRow-name').string
+            ability_description = soup.find('div', 'AbilityRow-description').string
+
+            abilities_dict.update({
+                ability_id: {
+                    'id': ability_id,
+                    'url': ability_link,
+                    'name': ability_name,
+                    'description': ability_description
+                }
+            })
+        browser.execute_script('window.scrollBy(0, window.innerHeight + 1)')
+        new_y = browser.execute_script('return window.pageYOffset;')
+        if y == new_y:
+            break
+        else:
+            y = new_y
+
+    return abilities_dict

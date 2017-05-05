@@ -3,6 +3,7 @@ import urllib.request
 import datetime
 import json
 import smogonscraper
+import re
 
 import constants
 
@@ -22,10 +23,24 @@ class SmogonError(PokeCoachError):
 
 class PokemonError(PokeCoachError):
     '''Exception caused when the requested pokemon doesn't exist.'''
-    def __init__(self, msg=None):
+    def __init__(self, name=None, msg=None):
         if msg is None:
-            msg = 'Pokemon not found.'
+            if name is None:
+                msg = 'Pokemon not found.'
+            else:
+                msg = 'Pokemon "' + name + '" not found.'
         super(PokemonError, self).__init__(msg)
+
+
+class MoveError(PokeCoachError):
+    '''Exception caused when the requested move doesn't exist.'''
+    def __init__(self, name=None, msg=None):
+        if msg is None:
+            if name is None:
+                msg = 'Move not found.'
+            else:
+                msg = 'Move "' + name + '" not found.'
+        super(MoveError, self).__init__(msg)
 
 
 def _check_smogon_release(date):
@@ -34,6 +49,11 @@ def _check_smogon_release(date):
         urllib.request.urlopen(server_release)
     except urllib.request.HTTPError as e:
         raise SmogonError from e
+
+
+def _name_to_key(name):
+    keyified = re.sub('[^0-9a-z_\-]+', '', name.lower().replace(' ', '_'))
+    return keyified
 
 
 def pokemon_dict(date='default', meta='gen7ou', rank=1500):
@@ -89,7 +109,7 @@ def pokemon(name, date='default', meta='gen7ou', rank=1500):
             'Count': sum(smogon_json['data'][name]['Abilities'].values())
         })
     except KeyError as e:
-        raise PokemonError from e
+        raise PokemonError(name) from e
     pokemon_data['data_percent'] = pokemon_data['data']
     for (category, content) in pokemon_data['data'].items():
         if isinstance(content, dict):
@@ -110,7 +130,7 @@ def moves_dict(version='sm'):
         if constants.AUTO_DOWNLOAD:
             print('Scraping: ' + server_source_path)
             os.makedirs(os.path.dirname(json_filename), exist_ok=True)
-            move_dict = smogonscraper.scrape_moves('sm')
+            move_dict = smogonscraper.scrape_moves(version)
             if not bool(move_dict):
                 raise SmogonError
             f = open(json_filename, 'w')
@@ -127,5 +147,9 @@ def moves_dict(version='sm'):
 
 def move(name, version='sm'):
     moves = moves_dict(version)
-    move_data = moves[name]
+    try:
+        move_data = moves[_name_to_key(name)]
+    except KeyError as e:
+        raise MoveError(name=name) from e
     return move_data
+

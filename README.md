@@ -28,7 +28,7 @@ Once properly installed you can use Pokemon Tool by importing it into your proje
 
 Returns a dictionary containing the usage data for the provided **date**, **meta** and **rank**. **date** is in YYYY-MM format. If **date** is set to 'default', it will attempt to get the most recent data.
 
-This will read the data from a json file located in **./stats**, if the file is not available, it will attempt to download it from [Smogon](http://www.smogon.com/stats/). If the information is not available, it will raise a **SmogonError** exception.
+This will read the data from a json file located in **./stats**. If the file is not available, it will attempt to download it from [Smogon](http://www.smogon.com/stats/). If the information is not available, it will raise a **SmogonError** exception.
 
 Example: `pokemon_dict('2017-02', 'gen7rualpha', rank=1630)`
 
@@ -47,3 +47,21 @@ The dictionary contains the following keys:
 - **data** - Contains the usage data as provided from Smogon.
 - **Count** - The sum of all the occurrences of Abilities for that Pokemon. Can also be understood as the number of times this Pokemon was used.
 - **data_percent** - Contains the usage data in percents.
+
+---
+
+`moves_dict(version='sm')`
+
+Returns a dictionary containing all the move data for the provided **version**. Default is 'sm', referring to Pokemon Sun and Moon.
+
+This will read the data from a json file located in **./dex**. If the file is not available, it will attempt to scrape it from [Smogon](http://www.smogon.com/dex/moves/).
+
+---
+
+`move(name, version='sm')`
+
+Returns a dictionary containing the data for the move with given **name**. **version** behaves just like in the previous function.
+
+You can perform a search either via key or name, case insensitive. For example, if searching for *Shadow Ball*, you can look it up as "Shadow Ball", "shadow ball" or "shadow_ball".
+
+This function returns a value similar to running **moves_dict(version)[_name_to_key(name)]**, but will raise a **MoveError** exception if the key is not found.
