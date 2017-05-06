@@ -24,13 +24,13 @@ Once properly installed you can use Pokemon Tool by importing it into your proje
 
 ### Functions
 
-`pokemon_dict(date='default', meta='gen7ou', rank=1500)`
+`pokemon_usage_dict(date='default', meta='gen7ou', rank=1500)`
 
 Returns a dictionary containing the usage data for the provided **date**, **meta** and **rank**. **date** is in YYYY-MM format. If **date** is set to 'default', it will attempt to get the most recent data.
 
 This will read the data from a json file located in **./stats**. If the file is not available, it will attempt to download it from [Smogon](http://www.smogon.com/stats/). If the information is not available, it will raise a **SmogonError** exception.
 
-Example: `pokemon_dict('2017-02', 'gen7rualpha', rank=1630)`
+Example: `pokemon_usage_dict('2017-02', 'gen7rualpha', rank=1630)`
 
 This function returns the data exactly as it's organized in Smogon.
 
